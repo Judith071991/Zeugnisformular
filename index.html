@@ -205,10 +205,10 @@
       elStatus.textContent = msg;
     }
 
-    function normalizeTrack(x) {
-      if (!x) return null;
-      return String(x).trim().toLowerCase();
-    }
+    function logStatus(msg) {
+  const stamp = new Date().toLocaleTimeString();
+  elStatus.textContent = `[${stamp}] ${msg}`;
+}
 
     function korbKey(entry) {
       return `${entry.pool_jahrgang}||${entry.pool_thema}||${entry.item_text}`;
