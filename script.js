@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // 1) HIER EINTRAGEN
 // =========================
 const SUPABASE_URL = "https://nvnjbmviyifslpsgljid.supabase.co";
-const SUPABASE_ANON_KEY = "HIER_DEIN_PUBLISHABLE_KEY_EINFUEGEN"; // ohne Sonderzeichen
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52bmpibXZpeWlmc2xwc2dsamlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MDk5NDIsImV4cCI6MjA4MjQ4NTk0Mn0.g21Hp-wSTGmW-Uhtg4qJO767_DIl_rOztwPztVvrtBM"; // ohne Sonderzeichen
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
