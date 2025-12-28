@@ -15,13 +15,25 @@ function setStatus(msg) {
 }
 
 async function loadFaecher() {
-  setStatus("Lade Fächer…");
-
-  // holt name + order aus deiner Tabelle fach
   const { data, error } = await supabase
     .from("fach")
     .select("name, order")
-    .order("order", { ascending: true });
+    .order("order");
+
+  const sel = document.getElementById("fach");
+  sel.innerHTML = `<option value="">— bitte wählen —</option>`;
+  for (const f of data) {
+    const o = document.createElement("option");
+    o.value = f.name;
+    o.textContent = f.name;
+    sel.appendChild(o);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("status").textContent = "JS läuft – lade Fächer…";
+  loadFaecher();
+});
 
   if (error) {
     setStatus("❌ Fehler beim Laden der Fächer: " + error.message);
