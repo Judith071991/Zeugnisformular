@@ -108,10 +108,32 @@
     <div id="status" class="status muted small">Bereit.</div>
   </div>
 
-  <!-- Supabase JS (v2) -->
-  <script type="module">
-    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-    document.getElementById("status").textContent = "SCRIPT STARTET JETZT ✅";
+  <!-- Supabase (ohne module, Safari-robust) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+<script>
+  // Sichtbarer Beweis, dass JS läuft:
+  document.getElementById("status").textContent = "SCRIPT STARTET JETZT ✅";
+
+  // Supabase Client erstellen:
+  const SUPABASE_URL = "DEINE_PROJECT_URL_HIER";
+  const SUPABASE_ANON_KEY = "DEIN_PUBLISHABLE_KEY_HIER";
+
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Test: Fächer laden und in Status schreiben (nur Debug)
+  (async function () {
+    try {
+      const res = await supabase.from("fach").select("id,name");
+      if (res.error) throw res.error;
+      document.getElementById("status").textContent =
+        "✅ JS läuft. Fächer gefunden: " + (res.data?.length ?? 0);
+    } catch (e) {
+      document.getElementById("status").textContent =
+        "❌ JS läuft, aber Fehler: " + (e.message ?? String(e));
+    }
+  })();
+</script>
 
     // =========================
     // 1) HIER EINTRAGEN
