@@ -3,12 +3,81 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Zeugnis Test</title>
+  <title>Zeugnis-Eingabe</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#f6f7fb}
+    .wrap{max-width:1100px;margin:24px auto;padding:0 16px}
+    .card{background:#fff;border:1px solid #ddd;border-radius:10px;padding:14px;margin-bottom:12px}
+    label{display:block;font-size:13px;color:#666;margin-bottom:6px}
+    input,select,button{width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid #ddd;font-size:14px;background:#fff}
+    button{background:#1f6feb;color:#fff;border-color:#1f6feb;font-weight:600;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .items{max-height:320px;overflow:auto;border:1px solid #eee;border-radius:10px;padding:10px;background:#fff}
+    .line{display:grid;grid-template-columns:24px 1fr 200px;gap:10px;align-items:center;padding:8px 6px;border-bottom:1px solid #eee}
+    .line:last-child{border-bottom:none}
+    .small{font-size:13px;color:#666}
+  </style>
 </head>
 <body>
-  <h1>Zeugnis Test</h1>
-  <div id="status">Bereit.</div>
+<div class="wrap">
+  <div class="card">
+    <h1 style="margin:0 0 6px">Zeugnis-Eingabe</h1>
+    <div class="small">Fach → Pool-Jahrgang → Thema → Items laden → bewerten → speichern.</div>
+  </div>
 
-  <script type="module" src="./script.js?v=999"></script>
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label for="kind_code">Kind-Code</label>
+        <input id="kind_code" placeholder="z. B. TEST01" />
+      </div>
+      <div>
+        <label for="fach">Fach</label>
+        <select id="fach">
+          <option value="">— bitte wählen —</option>
+        </select>
+      </div>
+      <div>
+        <label for="pool_jahrgang">Pool-Jahrgang</label>
+        <select id="pool_jahrgang">
+          <option value="">— bitte wählen —</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
+        </select>
+      </div>
+      <div>
+        <label for="thema">Thema</label>
+        <select id="thema" disabled>
+          <option value="">— zuerst Fach + Pool-Jahrgang —</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:12px">
+      <button id="btn_load" disabled>Items laden</button>
+    </div>
+  </div>
+
+  <div class="two">
+    <div class="card">
+      <b>Items zur Auswahl</b>
+      <div class="small">Häkchen setzen + Bewertung wählen.</div>
+      <div id="items" class="items" style="margin-top:10px">
+        <div class="small">Noch keine Items geladen.</div>
+      </div>
+    </div>
+    <div class="card">
+      <b>Auswahlkorb</b>
+      <div class="small">Speichern erzeugt eine neue Version pro Kind+Fach.</div>
+      <div id="korb" class="items" style="margin-top:10px"></div>
+      <button id="btn_save" disabled style="margin-top:10px">Speichern</button>
+    </div>
+  </div>
+
+  <div id="status" class="card small">Bereit.</div>
+</div>
+
+<script type="module" src="./script.js?v=1000"></script>
 </body>
 </html>
