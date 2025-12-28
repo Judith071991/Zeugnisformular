@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zeugnis-Eingabe</title>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; max-width: 1100px; }
+    h1 { font-size: 20px; margin: 0 0 8px; }
+    .muted { color: #666; font-size: 13px; }
+    .row { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 10px 0; }
+    @media (min-width: 900px) { .row.cols2 { grid-template-columns: 1fr 1fr; } }
+    label { font-weight: 650; font-size: 14px; display:block; margin-bottom: 6px; }
+    input, select, button { font-size: 16px; padding: 10px; width: 100%; box-sizing: border-box; }
+    button { cursor: pointer; border-radius: 10px; border: 1px solid #ccc; background: #fff; }
+    button.primary { background: #111; color: #fff; border: 0; }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    .card { border: 1px solid #ddd; border-radius: 12px; padding: 12px; margin: 12px 0; }
+    .items { display: grid; gap: 10px; }
+    .itemline { display: grid; grid-template-columns: 26px 1fr 190px; gap: 10px; align-items: start; }
+    .chip { display:inline-block; padding: 2px 8px; border:1px solid #ddd; border-radius: 999px; font-size: 12px; margin-left: 6px; color:#444;}
+    .warn { color: #b00020; font-weight: 700; }
+    .ok { color: #0a7a0a; font-weight: 700; }
+    .small { font-size: 12px; }
+    .korbItem { display:grid; grid-template-columns: 1fr 190px 42px; gap: 10px; align-items: start; padding: 10px; border: 1px solid #eee; border-radius: 10px; }
+    .removeBtn { width: 42px; height: 42px; padding: 0; border-radius: 10px; border: 1px solid #ddd; background: #fff; }
+    .split { display:grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 900px) { .split { grid-template-columns: 1.1fr 0.9fr; } }
+    .hr { height:1px; background:#eee; margin: 12px 0; }
+    .status { white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>Zeugnis-Eingabe</h1>
+  <div class="muted">
+    Fach → Pool-Jahrgang → Thema wählen. Items aus mehreren Pools sammeln (z. B. Jg. 5 und Jg. 7) – am Ende zählt die Gesamtzahl je Track.
+    Speichern erstellt eine neue Version pro Kind+Fach (über <code>fachstand</code>).
+  </div>
+
+  <div class="card">
+    <div class="row cols2">
+      <div>
+        <label for="kind_code">Kind-Code</label>
+        <input id="kind_code" placeholder="z. B. K05A" />
+      </div>
+      <div>
+        <label for="fach">Fach</label>
+        <select id="fach">
+          <option value="">— bitte wählen —</option>
+        </select>
+        <div class="muted small">Die Anzahl wird automatisch über <code>track</code> aus der Item-Tabelle bestimmt.</div>
+      </div>
+    </div>
+
+    <div class="row cols2">
+      <div>
+        <label for="pool_jahrgang">Pool-Jahrgang</label>
+        <select id="pool_jahrgang">
+          <option value="">— bitte wählen —</option>
+          <option value="5">5</option><option value="6">6</option><option value="7">7</option>
+          <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+        </select>
+      </div>
+      <div>
+        <label for="thema">Thema</label>
+        <select id="thema" disabled>
+          <option value="">— zuerst Fach + Pool-Jahrgang wählen —</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row">
+      <button id="loadItemsBtn">Items laden</button>
+      <div class="muted small">Du kannst nach dem Laden den Pool/Jahrgang oder das Thema wechseln und weitere Items hinzufügen – der Auswahlkorb bleibt bestehen.</div>
+    </div>
+  </div>
+
+  <div class="split">
+    <div class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div>
+          <div><strong>Items zur Auswahl</strong></div>
+          <div class="muted small">Häkchen setzen → Bewertung wählen → wird in den Korb übernommen.</div>
+        </div>
+        <div id="counter" class="chip">0/—</div>
+      </div>
+      <div class="hr"></div>
+      <div id="itemsContainer" class="items">
+        <div class="muted">Noch keine Items geladen.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div><strong>Auswahlkorb</strong> <span id="trackInfo" class="chip">track: —</span></div>
+      <div class="muted small">Hier sammelst du Items aus verschiedenen Pools. Speichern ist nur möglich, wenn die Zielanzahl erreicht und alle Bewertungen gesetzt sind.</div>
+      <div class="hr"></div>
+      <div id="korbContainer" class="items">
+        <div class="muted">Noch keine Auswahl.</div>
+      </div>
+      <div class="hr"></div>
+      <button id="saveBtn" class="primary" disabled>Speichern (neue Version)</button>
+      <div id="saveHint" class="muted small" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div><strong>Status</strong></div>
+    <div id="status" class="status muted small">Bereit.</div>
+  </div>
+
+  <!-- Supabase JS (v2) -->
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+    // =========================
+    // 1) HIER EINTRAGEN
+    // =========================
+    const SUPABASE_URL = "https://nvnjbmviyifslpsgljid.supabase.co";
+    const SUPABASE_ANON_KEY = „sb_publishable_py0G-vJVAsuv1k1Cov4CQQ_mPe8ZAli“;
+
+    // =========================
+    // 2) Tabellen-/Spaltennamen (dein Setup)
+    // =========================
+    const T = {
+      fach: "fach",
+      thema: "thema",
+      item: "item",
+      bewertungsskala: "bewertungsskala",
+      zeugniseintraege: "zeugniseintraege",
+      fachstand: "fachstand",
+    };
+
+    const C = {
+      // fach
+      fach_name: "name",
+      fach_order: "order",
+
+      // thema
+      thema_jahrgang: "jahrgang",
+      thema_name: "thema",
+      thema_fach: "fach",
+
+      // item
+      item_jahrgang: "jahrgang",
+      item_thema: "thema",
+      item_text: "item",
+      item_track: "track",
+      item_fach: "fach",
+
+      // bewertungsskala
+      rating_label: "label",
+      rating_order: "order",
+
+      // zeugniseintraege
+      z_kind_code: "kind_code",
+      z_fach: "fach",
+      z_jahrgang: "jahrgang",
+      z_thema: "thema",
+      z_item: "item",
+      z_bewertung: "bewertungsskala",
+      z_eingabe_id: "eingabe_id",
+      z_pool_jahrgang: "pool_jahrgang",
+      z_pool_thema: "pool_thema",
+
+      // fachstand
+      fs_kind_code: "kind_code",
+      fs_fach: "fach",
+      fs_aktuelle_eingabe_id: "aktuelle_eingabe_id",
+      fs_aktualisiert_am: "aktualisiert_am",
+    };
+
+    // =========================
+    // 3) Track → Zielanzahl
+    // =========================
+    const TRACK_COUNTS = {
+      hauptfach: 7,
+      nebenfach: 5,
+      arbeitsverhalten: 8,
+      sozialverhalten: 8,
+    };
+
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // UI refs
+    const elKind = document.getElementById("kind_code");
+    const elFach = document.getElementById("fach");
+    const elPoolJg = document.getElementById("pool_jahrgang");
+    const elThema = document.getElementById("thema");
+    const elLoadItems = document.getElementById("loadItemsBtn");
+    const elItems = document.getElementById("itemsContainer");
+    const elKorb = document.getElementById("korbContainer");
+    const elSave = document.getElementById("saveBtn");
+    const elSaveHint = document.getElementById("saveHint");
+    const elStatus = document.getElementById("status");
+    const elCounter = document.getElementById("counter");
+    const elTrackInfo = document.getElementById("trackInfo");
+
+    let ratings = []; // [{label, order}]
+    let currentTrack = null; // string
+    let requiredCount = null; // number
+    let currentItems = []; // list of items loaded for current pool/theme
+    let korb = []; // [{ pool_jahrgang, pool_thema, item_text, bewertung_label }]
+
+    function logStatus(msg) {
+      elStatus.textContent = msg;
+    }
+
+    function normalizeTrack(x) {
+      if (!x) return null;
+      return String(x).trim().toLowerCase();
+    }
+
+    function korbKey(entry) {
+      return `${entry.pool_jahrgang}||${entry.pool_thema}||${entry.item_text}`;
+    }
+
+    function inKorb(pool_jahrgang, pool_thema, item_text) {
+      const key = `${pool_jahrgang}||${pool_thema}||${item_text}`;
+      return korb.find(e => korbKey(e) === key) || null;
+    }
+
+    function updateCounterAndSaveState() {
+      const selectedCount = korb.length;
+      elCounter.textContent = `${selectedCount}/${requiredCount ?? "—"}`;
+
+      const missing = (requiredCount == null) ? null : (requiredCount - selectedCount);
+
+      // Prüfen: alle Bewertungen gesetzt?
+      const allRated = korb.every(e => !!e.bewertung_label);
+
+      // Regeln
+      let ok = true;
+      let hint = "";
+
+      if (!elKind.value.trim()) { ok = false; hint = "Bitte Kind-Code eingeben."; }
+      else if (!elFach.value) { ok = false; hint = "Bitte Fach wählen."; }
+      else if (requiredCount == null) { ok = false; hint = "Keine Track-Information gefunden (bitte mind. ein Item für dieses Fach in der Item-Tabelle anlegen)."; }
+      else if (missing !== 0) {
+        ok = false;
+        hint = missing > 0 ? `Es fehlen noch ${missing} Item(s).` : `Zu viele Items ausgewählt (${Math.abs(missing)} zu viel).`;
+      } else if (!allRated) {
+        ok = false;
+        hint = "Bitte für jedes ausgewählte Item eine Bewertung wählen.";
+      } else {
+        hint = "Bereit zum Speichern.";
+      }
+
+      elSave.disabled = !ok;
+      elSaveHint.textContent = hint;
+    }
+
+    function renderKorb() {
+      if (korb.length === 0) {
+        elKorb.innerHTML = `<div class="muted">Noch keine Auswahl.</div>`;
+        updateCounterAndSaveState();
+        return;
+      }
+
+      elKorb.innerHTML = "";
+      for (const entry of korb) {
+        const div = document.createElement("div");
+        div.className = "korbItem";
+
+        const left = document.createElement("div");
+        left.innerHTML = `
+          <div><strong>${escapeHtml(entry.item_text)}</strong></div>
+          <div class="muted small">Pool: Jg. ${escapeHtml(String(entry.pool_jahrgang))} · Thema: ${escapeHtml(entry.pool_thema)}</div>
+        `;
+
+        const sel = document.createElement("select");
+        sel.innerHTML = `<option value="">— Bewertung —</option>` + ratings
+          .slice().sort((a,b)=>a.order-b.order)
+          .map(r => `<option value="${escapeHtml(r.label)}">${escapeHtml(r.label)}</option>`).join("");
+        sel.value = entry.bewertung_label || "";
+        sel.addEventListener("change", () => {
+          entry.bewertung_label = sel.value || null;
+          updateCounterAndSaveState();
+        });
+
+        const btn = document.createElement("button");
+        btn.className = "removeBtn";
+        btn.title = "Entfernen";
+        btn.textContent = "✕";
+        btn.addEventListener("click", () => {
+          korb = korb.filter(e => korbKey(e) !== korbKey(entry));
+          renderItemsList(); // Checkboxen aktualisieren
+          renderKorb();
+        });
+
+        div.appendChild(left);
+        div.appendChild(sel);
+        div.appendChild(btn);
+        elKorb.appendChild(div);
+      }
+
+      updateCounterAndSaveState();
+    }
+
+    function renderItemsList() {
+      if (!currentItems || currentItems.length === 0) {
+        elItems.innerHTML = `<div class="muted">Keine Items gefunden (prüfe Fach/Jahrgang/Thema in deiner Item-Tabelle).</div>`;
+        return;
+      }
+
+      const pool_jahrgang = elPoolJg.value;
+      const pool_thema = elThema.value;
+
+      elItems.innerHTML = "";
+
+      for (const it of currentItems) {
+        const line = document.createElement("div");
+        line.className = "itemline";
+
+        const cb = document.createElement("input");
+        cb.type = "checkbox";
+        cb.style.marginTop = "4px";
+
+        const itemText = it[C.item_text];
+
+        const existing = inKorb(pool_jahrgang, pool_thema, itemText);
+        cb.checked = !!existing;
+
+        const textDiv = document.createElement("div");
+        textDiv.innerHTML = `<div>${escapeHtml(itemText)}</div>`;
+
+        const ratingSelect = document.createElement("select");
+        ratingSelect.innerHTML = `<option value="">— Bewertung —</option>` + ratings
+          .slice().sort((a,b)=>a.order-b.order)
+          .map(r => `<option value="${escapeHtml(r.label)}">${escapeHtml(r.label)}</option>`).join("");
+
+        if (existing?.bewertung_label) ratingSelect.value = existing.bewertung_label;
+
+        // Wenn nicht ausgewählt: dropdown deaktivieren
+        ratingSelect.disabled = !cb.checked;
+
+        cb.addEventListener("change", () => {
+          const selected = cb.checked;
+
+          // Maximal-Check
+          if (selected) {
+            if (requiredCount != null && korb.length >= requiredCount) {
+              cb.checked = false;
+              logStatus(`Du kannst max. ${requiredCount} Items auswählen (track: ${currentTrack}). Entferne erst ein Item aus dem Korb.`);
+              return;
+            }
+
+            const entry = {
+              pool_jahrgang: Number(pool_jahrgang),
+              pool_thema: String(pool_thema),
+              item_text: String(itemText),
+              bewertung_label: ratingSelect.value || null,
+            };
+            korb.push(entry);
+            ratingSelect.disabled = false;
+          } else {
+            korb = korb.filter(e => !(e.pool_jahrgang === Number(pool_jahrgang) && e.pool_thema === String(pool_thema) && e.item_text === String(itemText)));
+            ratingSelect.disabled = true;
+            ratingSelect.value = "";
+          }
+          renderKorb();
+        });
+
+        ratingSelect.addEventListener("change", () => {
+          const entry = inKorb(pool_jahrgang, pool_thema, itemText);
+          if (entry) entry.bewertung_label = ratingSelect.value || null;
+          updateCounterAndSaveState();
+        });
+
+        line.appendChild(cb);
+        line.appendChild(textDiv);
+        line.appendChild(ratingSelect);
+        elItems.appendChild(line);
+      }
+    }
+
+    async function loadFaecher() {
+      logStatus("Lade Fächer …");
+      const { data, error } = await supabase
+        .from(T.fach)
+        .select(`id, ${C.fach_name}, ${C.fach_order}`)
+        .order(C.fach_order, { ascending: true });
+
+      if (error) throw error;
+
+      elFach.innerHTML = `<option value="">— bitte wählen —</option>`;
+      for (const row of data) {
+        const opt = document.createElement("option");
+        opt.value = row[C.fach_name];
+        opt.textContent = row[C.fach_name];
+        elFach.appendChild(opt);
+      }
+      logStatus("Fächer geladen.");
+    }
+
+    async function loadRatings() {
+      logStatus("Lade Bewertungsskala …");
+      const { data, error } = await supabase
+        .from(T.bewertungsskala)
+        .select(`id, ${C.rating_label}, ${C.rating_order}`)
+        .order(C.rating_order, { ascending: true });
+
+      if (error) throw error;
+
+      ratings = data.map(r => ({ label: r[C.rating_label], order: r[C.rating_order] }));
+      logStatus("Bewertungsskala geladen.");
+    }
+
+    async function loadTrackForFach(fachName) {
+      // Wir nehmen an, dass track innerhalb eines Fachs konsistent ist.
+      const { data, error } = await supabase
+        .from(T.item)
+        .select(`${C.item_track}`)
+        .eq(C.item_fach, fachName)
+        .limit(1);
+
+      if (error) throw error;
+
+      const t = normalizeTrack(data?.[0]?.[C.item_track] ?? null);
+      currentTrack = t;
+      requiredCount = t ? TRACK_COUNTS[t] ?? null : null;
+
+      elTrackInfo.textContent = `track: ${currentTrack ?? "—"}`;
+      updateCounterAndSaveState();
+    }
+
+    async function loadThemen(fachName, poolJg) {
+      elThema.disabled = true;
+      elThema.innerHTML = `<option value="">— lade Themen —</option>`;
+
+      const { data, error } = await supabase
+        .from(T.thema)
+        .select(`id, ${C.thema_name}`)
+        .eq(C.thema_fach, fachName)
+        .eq(C.thema_jahrgang, Number(poolJg))
+        .order(C.thema_name, { ascending: true });
+
+      if (error) throw error;
+
+      elThema.innerHTML = `<option value="">— bitte wählen —</option>`;
+      for (const row of data) {
+        const opt = document.createElement("option");
+        opt.value = row[C.thema_name];
+        opt.textContent = row[C.thema_name];
+        elThema.appendChild(opt);
+      }
+      elThema.disabled = false;
+    }
+
+    async function loadItemsForSelection(fachName, poolJg, themaName) {
+      logStatus(`Lade Items: ${fachName} · Jg. ${poolJg} · ${themaName} …`);
+      const { data, error } = await supabase
+        .from(T.item)
+        .select(`id, ${C.item_text}, ${C.item_track}`)
+        .eq(C.item_fach, fachName)
+        .eq(C.item_jahrgang, Number(poolJg))
+        .eq(C.item_thema, themaName)
+        .order(C.item_text, { ascending: true });
+
+      if (error) throw error;
+
+      currentItems = data;
+
+      // Track setzen (falls noch nicht gesetzt)
+      if (!currentTrack) {
+        const t = normalizeTrack(data?.[0]?.[C.item_track] ?? null);
+        currentTrack = t;
+        requiredCount = t ? TRACK_COUNTS[t] ?? null : null;
+        elTrackInfo.textContent = `track: ${currentTrack ?? "—"}`;
+      }
+
+      renderItemsList();
+      updateCounterAndSaveState();
+      logStatus("Items geladen.");
+    }
+
+    async function saveNewVersion() {
+      const kind_code = elKind.value.trim();
+      const fachName = elFach.value;
+      if (!kind_code || !fachName) return;
+
+      // Neue Version-ID
+      const eingabe_id = (crypto?.randomUUID?.() ?? null);
+      if (!eingabe_id) {
+        throw new Error("Dein Browser unterstützt crypto.randomUUID() nicht.");
+      }
+
+      // Zeugniseinträge vorbereiten
+      const rows = korb.map(e => ({
+        [C.z_kind_code]: kind_code,
+        [C.z_fach]: fachName,
+
+        // Wir speichern jahrgang/thema pro ausgewähltem Item = der Pool (damit alles nachvollziehbar ist)
+        [C.z_jahrgang]: Number(e.pool_jahrgang),
+        [C.z_thema]: String(e.pool_thema),
+
+        [C.z_item]: String(e.item_text),
+        [C.z_bewertung]: String(e.bewertung_label),
+
+        [C.z_eingabe_id]: eingabe_id,
+
+        [C.z_pool_jahrgang]: Number(e.pool_jahrgang),
+        [C.z_pool_thema]: String(e.pool_thema),
+      }));
+
+      logStatus("Speichere Zeugniseinträge …");
+      const { error: insErr } = await supabase
+        .from(T.zeugniseintraege)
+        .insert(rows);
+
+      if (insErr) throw insErr;
+
+      logStatus("Aktualisiere fachstand (Überschreiben/Upsert) …");
+      const upsertObj = {
+        [C.fs_kind_code]: kind_code,
+        [C.fs_fach]: fachName,
+        [C.fs_aktuelle_eingabe_id]: eingabe_id,
+        [C.fs_aktualisiert_am]: new Date().toISOString(),
+      };
+
+      const { error: upErr } = await supabase
+        .from(T.fachstand)
+        .upsert(upsertObj, { onConflict: `${C.fs_kind_code},${C.fs_fach}` });
+
+      if (upErr) throw upErr;
+
+      logStatus(`✅ Gespeichert. Neue Version-ID: ${eingabe_id}\nDu kannst jetzt weiter Items hinzufügen oder Fach wechseln.`);
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // =========================
+    // Events
+    // =========================
+    elFach.addEventListener("change", async () => {
+      currentTrack = null;
+      requiredCount = null;
+      currentItems = [];
+      elItems.innerHTML = `<div class="muted">Bitte Pool-Jahrgang und Thema wählen, dann „Items laden“.</div>`;
+      elThema.innerHTML = `<option value="">— zuerst Fach + Pool-Jahrgang wählen —</option>`;
+      elThema.disabled = true;
+
+      if (!elFach.value) {
+        elTrackInfo.textContent = "track: —";
+        updateCounterAndSaveState();
+        return;
+      }
+
+      try {
+        await loadTrackForFach(elFach.value);
+        if (elPoolJg.value) await loadThemen(elFach.value, elPoolJg.value);
+      } catch (e) {
+        logStatus("Fehler beim Laden des Tracks/Themen: " + (e.message ?? e));
+      }
+    });
+
+    elPoolJg.addEventListener("change", async () => {
+      elThema.disabled = true;
+      if (!elFach.value || !elPoolJg.value) {
+        elThema.innerHTML = `<option value="">— zuerst Fach + Pool-Jahrgang wählen —</option>`;
+        return;
+      }
+      try {
+        await loadThemen(elFach.value, elPoolJg.value);
+        logStatus("Themen geladen. Wähle ein Thema und klicke „Items laden“.");
+      } catch (e) {
+        logStatus("Fehler beim Laden der Themen: " + (e.message ?? e));
+      }
+    });
+
+    elLoadItems.addEventListener("click", async () => {
+      const fachName = elFach.value;
+      const poolJg = elPoolJg.value;
+      const themaName = elThema.value;
+
+      if (!fachName) { logStatus("Bitte zuerst ein Fach wählen."); return; }
+      if (!poolJg) { logStatus("Bitte zuerst einen Pool-Jahrgang wählen."); return; }
+      if (!themaName) { logStatus("Bitte zuerst ein Thema wählen."); return; }
+
+      try {
+        await loadItemsForSelection(fachName, poolJg, themaName);
+      } catch (e) {
+        logStatus("Fehler beim Laden der Items: " + (e.message ?? e));
+      }
+    });
+
+    elSave.addEventListener("click", async () => {
+      try {
+        await saveNewVersion();
+      } catch (e) {
+        logStatus("❌ Speichern fehlgeschlagen: " + (e.message ?? e));
+      }
+    });
+
+    // =========================
+    // Init
+    // =========================
+    (async function init() {
+      try {
+        await loadRatings();
+        await loadFaecher();
+        renderKorb();
+        updateCounterAndSaveState();
+        logStatus("Bereit. Wähle Fach, Pool-Jahrgang, Thema → Items laden.");
+      } catch (e) {
+        logStatus("❌ Initialisierung fehlgeschlagen: " + (e.message ?? e));
+      }
+    })();
+  </script>
+</body>
+</html>
