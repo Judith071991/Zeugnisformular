@@ -2,43 +2,39 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Zeugnis-Eingabe</title>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 16px; max-width: 1100px; }
-    h1 { font-size: 20px; margin: 0 0 8px; }
-    .muted { color: #666; font-size: 13px; }
-    .row { display: grid; grid-template-columns: 1fr; gap: 10px; margin: 10px 0; }
-    @media (min-width: 900px) { .row.cols2 { grid-template-columns: 1fr 1fr; } }
-    label { font-weight: 650; font-size: 14px; display:block; margin-bottom: 6px; }
-    input, select, button { font-size: 16px; padding: 10px; width: 100%; box-sizing: border-box; }
-    button { cursor: pointer; border-radius: 10px; border: 1px solid #ccc; background: #fff; }
-    button.primary { background: #111; color: #fff; border: 0; }
-    button:disabled { opacity: 0.55; cursor: not-allowed; }
-    .card { border: 1px solid #ddd; border-radius: 12px; padding: 12px; margin: 12px 0; }
-    .items { display: grid; gap: 10px; }
-    .itemline { display: grid; grid-template-columns: 26px 1fr 190px; gap: 10px; align-items: start; }
-    .chip { display:inline-block; padding: 2px 8px; border:1px solid #ddd; border-radius: 999px; font-size: 12px; margin-left: 6px; color:#444;}
-    .warn { color: #b00020; font-weight: 700; }
-    .ok { color: #0a7a0a; font-weight: 700; }
-    .small { font-size: 12px; }
-    .korbItem { display:grid; grid-template-columns: 1fr 190px 42px; gap: 10px; align-items: start; padding: 10px; border: 1px solid #eee; border-radius: 10px; }
-    .removeBtn { width: 42px; height: 42px; padding: 0; border-radius: 10px; border: 1px solid #ddd; background: #fff; }
-    .split { display:grid; grid-template-columns: 1fr; gap: 12px; }
-    @media (min-width: 900px) { .split { grid-template-columns: 1.1fr 0.9fr; } }
-    .hr { height:1px; background:#eee; margin: 12px 0; }
-    .status { white-space: pre-wrap; }
+    :root { --bg:#f6f7fb; --card:#fff; --border:#dcdfe6; --text:#222; --muted:#666; }
+    body { font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; background: var(--bg); color: var(--text); margin: 0; }
+    .wrap { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    .sub { color: var(--muted); margin: 0 0 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    label { display:block; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    input, select, button { width: 100%; box-sizing: border-box; padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background:#fff; }
+    button { cursor:pointer; background:#1f6feb; border-color:#1f6feb; color:#fff; font-weight:600; }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .row { display:flex; gap:10px; align-items:center; }
+    .row > * { flex: 1; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .items { max-height: 320px; overflow:auto; border:1px solid var(--border); border-radius:10px; padding:10px; background:#fff; }
+    .line { display:grid; grid-template-columns: 24px 1fr 200px; gap:10px; align-items:center; padding:8px 6px; border-bottom:1px solid #eee; }
+    .line:last-child { border-bottom:none; }
+    .pill { display:inline-block; padding:2px 8px; border:1px solid var(--border); border-radius:999px; font-size:12px; color:var(--muted); }
+    .two { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    #status { margin-top: 12px; }
   </style>
 </head>
 <body>
-  <h1>Zeugnis-Eingabe TEST123</h1>
-  <div class="muted">
-    Fach → Pool-Jahrgang → Thema wählen. Items aus mehreren Pools sammeln (z. B. Jg. 5 und Jg. 7) – am Ende zählt die Gesamtzahl je Track.
-    Speichern erstellt eine neue Version pro Kind+Fach (über <code>fachstand</code>).
-  </div>
+<div class="wrap">
+  <h1>Zeugnis-Eingabe</h1>
+  <p class="sub small">Fach → Pool-Jahrgang → Thema → Items laden. Items aus mehreren Pool-Jahrgängen kombinierbar. Speichern erzeugt eine neue Version pro Kind+Fach.</p>
 
   <div class="card">
-    <div class="row cols2">
+    <div class="grid">
       <div>
         <label for="kind_code">Kind-Code</label>
         <input id="kind_code" placeholder="z. B. K05A" />
@@ -48,19 +44,17 @@
         <select id="fach">
           <option value="">— bitte wählen —</option>
         </select>
-        <div class="muted small">Die Anzahl wird automatisch über <code>track</code> aus der Item-Tabelle bestimmt.</div>
+        <div class="small muted">Die Soll-Anzahl wird automatisch über <span class="pill">track</span> aus der Item-Tabelle bestimmt.</div>
       </div>
-    </div>
 
-    <div class="row cols2">
       <div>
         <label for="pool_jahrgang">Pool-Jahrgang</label>
         <select id="pool_jahrgang">
           <option value="">— bitte wählen —</option>
-          <option value="5">5</option><option value="6">6</option><option value="7">7</option>
-          <option value="8">8</option><option value="9">9</option><option value="10">10</option>
+          <option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
         </select>
       </div>
+
       <div>
         <label for="thema">Thema</label>
         <select id="thema" disabled>
@@ -69,607 +63,482 @@
       </div>
     </div>
 
-    <div class="row">
-      <button id="loadItemsBtn">Items laden</button>
-      <div class="muted small">Du kannst nach dem Laden den Pool/Jahrgang oder das Thema wechseln und weitere Items hinzufügen – der Auswahlkorb bleibt bestehen.</div>
+    <div style="margin-top:12px;">
+      <button id="btn_load" disabled>Items laden</button>
+      <div class="small muted" style="margin-top:6px;">Du kannst danach Pool-Jahrgang oder Thema wechseln und weitere Items hinzufügen – der Auswahlkorb bleibt bestehen.</div>
     </div>
   </div>
 
-  <div class="split">
+  <div class="two" style="margin-top:12px;">
     <div class="card">
-      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <div class="row" style="align-items:flex-end;">
         <div>
-          <div><strong>Items zur Auswahl</strong></div>
-          <div class="muted small">Häkchen setzen → Bewertung wählen → wird in den Korb übernommen.</div>
+          <div style="font-weight:700;">Items zur Auswahl</div>
+          <div class="small muted">Häkchen setzen → Bewertung wählen → wird in den Korb übernommen.</div>
         </div>
-        <div id="counter" class="chip">0/—</div>
+        <div class="small muted" style="text-align:right;">
+          <span id="counter">0</span>/<span id="required">—</span>
+        </div>
       </div>
-      <div class="hr"></div>
-      <div id="itemsContainer" class="items">
-        <div class="muted">Noch keine Items geladen.</div>
+      <div id="items" class="items" style="margin-top:10px;">
+        <div class="small muted">Noch keine Items geladen.</div>
       </div>
     </div>
 
     <div class="card">
-      <div><strong>Auswahlkorb</strong> <span id="trackInfo" class="chip">track: —</span></div>
-      <div class="muted small">Hier sammelst du Items aus verschiedenen Pools. Speichern ist nur möglich, wenn die Zielanzahl erreicht und alle Bewertungen gesetzt sind.</div>
-      <div class="hr"></div>
-      <div id="korbContainer" class="items">
-        <div class="muted">Noch keine Auswahl.</div>
-      </div>
-      <div class="hr"></div>
-      <button id="saveBtn" class="primary" disabled>Speichern (neue Version)</button>
-      <div id="saveHint" class="muted small" style="margin-top:8px;"></div>
+      <div style="font-weight:700;">Auswahlkorb <span class="pill">track: <span id="track_lbl">—</span></span></div>
+      <div class="small muted">Speichern ist nur möglich, wenn die Soll-Anzahl erreicht ist und alle Bewertungen gesetzt sind.</div>
+      <div id="korb" class="items" style="margin-top:10px;"></div>
+      <button id="btn_save" disabled style="margin-top:10px;">Speichern (neue Version)</button>
     </div>
   </div>
 
-  <div class="card">
-    <div><strong>Status</strong></div>
-    <div id="status" class="status muted small">Bereit.</div>
-  </div>
+  <div id="status" class="card small muted">Bereit.</div>
+</div>
 
-  <!-- Supabase (ohne module, Safari-robust) -->
+<!-- Supabase UMD (Safari-stabil) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
 <script>
-  // Sichtbarer Beweis, dass JS läuft:
-  document.getElementById("status").textContent = "SCRIPT STARTET JETZT ✅";
+/** ===========
+ *  Konfiguration: HIER eintragen
+ *  =========== */
+const SUPABASE_URL = "https://nvnjbmviyifslpsgljid.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_py0G-vJVAsuv1k1Cov4CQQ_mPe8ZAli";
 
-  // Supabase Client erstellen:
-  const SUPABASE_URL = "DEINE_PROJECT_URL_HIER";
-  const SUPABASE_ANON_KEY = "DEIN_PUBLISHABLE_KEY_HIER";
+/** Tabellen */
+const T = {
+  fach: "fach",
+  thema: "thema",
+  item: "item",
+  bewertungsskala: "bewertungsskala",
+  zeugniseintraege: "zeugniseintraege",
+  fachstand: "fachstand",
+};
+/** Spaltennamen (wie bei dir) */
+const C = {
+  // fach
+  fach_name: "name",
+  fach_order: "order",
+  // thema
+  thema_jahrgang: "jahrgang",
+  thema_name: "thema",
+  thema_fach: "fach",
+  // item
+  item_jahrgang: "jahrgang",
+  item_thema: "thema",
+  item_text: "item",
+  item_track: "track",
+  item_fach: "fach",
+  // bewertungsskala
+  b_label: "label",
+  b_order: "order",
+  // zeugniseintraege
+  z_kind: "kind_code",
+  z_fach: "fach",
+  z_jg: "jahrgang",
+  z_thema: "thema",
+  z_item: "item",
+  z_bew: "bewertungsskala",
+  z_eingabe: "eingabe_id",
+  z_pool_jg: "pool_jahrgang",
+  z_pool_thema: "pool_thema",
+  // fachstand
+  f_kind: "kind_code",
+  f_fach: "fach",
+  f_eingabe: "aktuelle_eingabe_id",
+  f_updated: "aktualisiert_am",
+};
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // Test: Fächer laden und in Status schreiben (nur Debug)
-  (async function () {
-    try {
-      const res = await supabase.from("fach").select("id,name");
-      if (res.error) throw res.error;
-      document.getElementById("status").textContent =
-        "✅ JS läuft. Fächer gefunden: " + (res.data?.length ?? 0);
-    } catch (e) {
-      document.getElementById("status").textContent =
-        "❌ JS läuft, aber Fehler: " + (e.message ?? String(e));
-    }
-  })();
-</script>
+// DOM
+const elStatus = document.getElementById("status");
+const elKind = document.getElementById("kind_code");
+const elFach = document.getElementById("fach");
+const elPoolJg = document.getElementById("pool_jahrgang");
+const elThema = document.getElementById("thema");
+const elBtnLoad = document.getElementById("btn_load");
+const elBtnSave = document.getElementById("btn_save");
+const elItems = document.getElementById("items");
+const elKorb = document.getElementById("korb");
+const elCounter = document.getElementById("counter");
+const elRequired = document.getElementById("required");
+const elTrackLbl = document.getElementById("track_lbl");
 
-    // =========================
-    // 1) HIER EINTRAGEN
-    // =========================
-    const SUPABASE_URL ="https://nvnjbmviyifslpsgljid.supabase.co";
-    const SUPABASE_ANON_KEY =„sb_publishable_py0G-vJVAsuv1k1Cov4CQQ_mPe8ZAli“;
+// Zustand
+let ratings = []; // {id,label,order}
+let currentTrack = null;
+let requiredCount = null;
+let selected = new Map(); // key=item_id => { itemRow, ratingId, pool_jg, pool_thema }
 
-    // =========================
-    // 2) Tabellen-/Spaltennamen (dein Setup)
-    // =========================
-    const T = {
-      fach: "fach",
-      thema: "thema",
-      item: "item",
-      bewertungsskala: "bewertungsskala",
-      zeugniseintraege: "zeugniseintraege",
-      fachstand: "fachstand",
-    };
+function logStatus(msg){ elStatus.textContent = msg; }
 
-    const C = {
-      // fach
-      fach_name: "name",
-      fach_order: "order",
-
-      // thema
-      thema_jahrgang: "jahrgang",
-      thema_name: "thema",
-      thema_fach: "fach",
-
-      // item
-      item_jahrgang: "jahrgang",
-      item_thema: "thema",
-      item_text: "item",
-      item_track: "track",
-      item_fach: "fach",
-
-      // bewertungsskala
-      rating_label: "label",
-      rating_order: "order",
-
-      // zeugniseintraege
-      z_kind_code: "kind_code",
-      z_fach: "fach",
-      z_jahrgang: "jahrgang",
-      z_thema: "thema",
-      z_item: "item",
-      z_bewertung: "bewertungsskala",
-      z_eingabe_id: "eingabe_id",
-      z_pool_jahrgang: "pool_jahrgang",
-      z_pool_thema: "pool_thema",
-
-      // fachstand
-      fs_kind_code: "kind_code",
-      fs_fach: "fach",
-      fs_aktuelle_eingabe_id: "aktuelle_eingabe_id",
-      fs_aktualisiert_am: "aktualisiert_am",
-    };
-
-    // =========================
-    // 3) Track → Zielanzahl
-    // =========================
-    const TRACK_COUNTS = {
-      hauptfach: 7,
-      nebenfach: 5,
-      arbeitsverhalten: 8,
-      sozialverhalten: 8,
-    };
-
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    // UI refs
-    const elKind = document.getElementById("kind_code");
-    const elFach = document.getElementById("fach");
-    const elPoolJg = document.getElementById("pool_jahrgang");
-    const elThema = document.getElementById("thema");
-    const elLoadItems = document.getElementById("loadItemsBtn");
-    const elItems = document.getElementById("itemsContainer");
-    const elKorb = document.getElementById("korbContainer");
-    const elSave = document.getElementById("saveBtn");
-    const elSaveHint = document.getElementById("saveHint");
-    const elStatus = document.getElementById("status");
-    const elCounter = document.getElementById("counter");
-    const elTrackInfo = document.getElementById("trackInfo");
-
-    let ratings = []; // [{label, order}]
-    let currentTrack = null; // string
-    let requiredCount = null; // number
-    let currentItems = []; // list of items loaded for current pool/theme
-    let korb = []; // [{ pool_jahrgang, pool_thema, item_text, bewertung_label }]
-
-    function logStatus(msg) {
-      elStatus.textContent = msg;
-    }
-
-    function logStatus(msg) {
-  const stamp = new Date().toLocaleTimeString();
-  elStatus.textContent = `[${stamp}] ${msg}`;
+function sanitizeKindCode(s){
+  return (s || "").trim();
 }
 
-    function korbKey(entry) {
-      return `${entry.pool_jahrgang}||${entry.pool_thema}||${entry.item_text}`;
-    }
+function updateCounter(){
+  elCounter.textContent = String(selected.size);
+  elRequired.textContent = requiredCount ? String(requiredCount) : "—";
+  elTrackLbl.textContent = currentTrack ?? "—";
 
-    function inKorb(pool_jahrgang, pool_thema, item_text) {
-      const key = `${pool_jahrgang}||${pool_thema}||${item_text}`;
-      return korb.find(e => korbKey(e) === key) || null;
-    }
+  // alle Bewertungen gesetzt?
+  const allRated = [...selected.values()].every(v => !!v.ratingId);
 
-    function updateCounterAndSaveState() {
-      const selectedCount = korb.length;
-      elCounter.textContent = `${selectedCount}/${requiredCount ?? "—"}`;
+  const canSave =
+    sanitizeKindCode(elKind.value).length > 0 &&
+    !!elFach.value &&
+    !!currentTrack &&
+    !!requiredCount &&
+    selected.size === requiredCount &&
+    allRated;
 
-      const missing = (requiredCount == null) ? null : (requiredCount - selectedCount);
+  elBtnSave.disabled = !canSave;
+}
 
-      // Prüfen: alle Bewertungen gesetzt?
-      const allRated = korb.every(e => !!e.bewertung_label);
+function ratingSelectHtml(selectedId){
+  let html = `<option value="">— Bewertung —</option>`;
+  for (const r of ratings){
+    const sel = (r.id === selectedId) ? "selected" : "";
+    html += `<option value="${r.id}" ${sel}>${escapeHtml(r[C.b_label])}</option>`;
+  }
+  return html;
+}
 
-      // Regeln
-      let ok = true;
-      let hint = "";
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
 
-      if (!elKind.value.trim()) { ok = false; hint = "Bitte Kind-Code eingeben."; }
-      else if (!elFach.value) { ok = false; hint = "Bitte Fach wählen."; }
-      else if (requiredCount == null) { ok = false; hint = "Keine Track-Information gefunden (bitte mind. ein Item für dieses Fach in der Item-Tabelle anlegen)."; }
-      else if (missing !== 0) {
-        ok = false;
-        hint = missing > 0 ? `Es fehlen noch ${missing} Item(s).` : `Zu viele Items ausgewählt (${Math.abs(missing)} zu viel).`;
-      } else if (!allRated) {
-        ok = false;
-        hint = "Bitte für jedes ausgewählte Item eine Bewertung wählen.";
+async function loadRatings(){
+  const { data, error } = await supabase
+    .from(T.bewertungsskala)
+    .select(`id, ${C.b_label}, ${C.b_order}`)
+    .order(C.b_order, { ascending: true });
+
+  if (error) throw error;
+  ratings = data || [];
+}
+
+async function loadFaecher(){
+  logStatus("Lade Fächer…");
+  const { data, error } = await supabase
+    .from(T.fach)
+    .select(`id, ${C.fach_name}, ${C.fach_order}`)
+    .order(C.fach_order, { ascending: true });
+
+  if (error) throw error;
+
+  elFach.innerHTML = `<option value="">— bitte wählen —</option>`;
+  for (const row of (data || [])){
+    const name = row[C.fach_name];
+    const opt = document.createElement("option");
+    opt.value = name;            // wir speichern den Fach-NAMEN in allen Tabellen
+    opt.textContent = name;
+    elFach.appendChild(opt);
+  }
+  logStatus(`✅ Fächer geladen: ${(data||[]).length}`);
+}
+
+async function loadThemen(){
+  elThema.disabled = true;
+  elThema.innerHTML = `<option value="">— lade Themen —</option>`;
+
+  const fach = elFach.value;
+  const poolJg = elPoolJg.value;
+  if (!fach || !poolJg) {
+    elThema.innerHTML = `<option value="">— zuerst Fach + Pool-Jahrgang wählen —</option>`;
+    return;
+  }
+
+  const { data, error } = await supabase
+    .from(T.thema)
+    .select(`id, ${C.thema_name}, ${C.thema_jahrgang}, ${C.thema_fach}`)
+    .eq(C.thema_fach, fach)
+    .eq(C.thema_jahrgang, Number(poolJg))
+    .order(C.thema_name, { ascending: true });
+
+  if (error) throw error;
+
+  elThema.innerHTML = `<option value="">— Thema wählen —</option>`;
+  for (const row of (data || [])){
+    const tname = row[C.thema_name];
+    const opt = document.createElement("option");
+    opt.value = tname;
+    opt.textContent = tname;
+    elThema.appendChild(opt);
+  }
+  elThema.disabled = false;
+}
+
+async function detectTrackAndRequired(fach){
+  // Track ermitteln: wir nehmen den häufigsten track für dieses Fach (praktisch: pro Fach ist track konstant)
+  const { data, error } = await supabase
+    .from(T.item)
+    .select(`id, ${C.item_track}, ${C.item_fach}`)
+    .eq(C.item_fach, fach)
+    .limit(2000);
+
+  if (error) throw error;
+
+  const counts = new Map();
+  for (const row of (data||[])){
+    const tr = row[C.item_track] || null;
+    if (!tr) continue;
+    counts.set(tr, (counts.get(tr) || 0) + 1);
+  }
+  // fallback
+  const best = [...counts.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0] || null;
+  currentTrack = best;
+
+  // Soll-Zahl je Track (du kannst das später anpassen)
+  // Idee: track in item: "nebenfach" -> 5, "hauptfach" -> 7, "arbeitsverhalten"/"sozialverhalten" -> 8
+  const map = {
+    nebenfach: 5,
+    hauptfach: 7,
+    arbeitsverhalten: 8,
+    sozialverhalten: 8,
+  };
+  requiredCount = map[currentTrack] ?? null;
+  updateCounter();
+}
+
+async function loadItems(){
+  const fach = elFach.value;
+  const poolJg = elPoolJg.value;
+  const thema = elThema.value;
+
+  if (!fach || !poolJg || !thema){
+    logStatus("Bitte Fach, Pool-Jahrgang und Thema wählen.");
+    return;
+  }
+
+  await detectTrackAndRequired(fach);
+
+  logStatus("Lade Items…");
+
+  const { data, error } = await supabase
+    .from(T.item)
+    .select(`id, ${C.item_text}, ${C.item_track}, ${C.item_jahrgang}, ${C.item_thema}, ${C.item_fach}`)
+    .eq(C.item_fach, fach)
+    .eq(C.item_jahrgang, Number(poolJg))
+    .eq(C.item_thema, thema)
+    .order(C.item_text, { ascending: true });
+
+  if (error) throw error;
+
+  elItems.innerHTML = "";
+  const rows = data || [];
+  if (!rows.length){
+    elItems.innerHTML = `<div class="small muted">Keine Items gefunden.</div>`;
+    logStatus("Keine Items für diese Auswahl.");
+    return;
+  }
+
+  for (const row of rows){
+    const id = row.id;
+    const txt = row[C.item_text];
+
+    const line = document.createElement("div");
+    line.className = "line";
+
+    const cb = document.createElement("input");
+    cb.type = "checkbox";
+    cb.checked = selected.has(id);
+
+    const textDiv = document.createElement("div");
+    textDiv.textContent = txt;
+
+    const sel = document.createElement("select");
+    sel.innerHTML = ratingSelectHtml(selected.get(id)?.ratingId || "");
+    sel.disabled = !cb.checked;
+
+    cb.addEventListener("change", () => {
+      if (cb.checked){
+        selected.set(id, { itemRow: row, ratingId: "", pool_jg: Number(poolJg), pool_thema: thema });
+        sel.disabled = false;
       } else {
-        hint = "Bereit zum Speichern.";
+        selected.delete(id);
+        sel.disabled = true;
+        sel.value = "";
       }
+      renderKorb();
+      updateCounter();
+    });
 
-      elSave.disabled = !ok;
-      elSaveHint.textContent = hint;
-    }
+    sel.addEventListener("change", () => {
+      if (!selected.has(id)) return;
+      const entry = selected.get(id);
+      entry.ratingId = sel.value || "";
+      selected.set(id, entry);
+      renderKorb();
+      updateCounter();
+    });
 
-    function renderKorb() {
-      if (korb.length === 0) {
-        elKorb.innerHTML = `<div class="muted">Noch keine Auswahl.</div>`;
-        updateCounterAndSaveState();
-        return;
-      }
-
-      elKorb.innerHTML = "";
-      for (const entry of korb) {
-        const div = document.createElement("div");
-        div.className = "korbItem";
-
-        const left = document.createElement("div");
-        left.innerHTML = `
-          <div><strong>${escapeHtml(entry.item_text)}</strong></div>
-          <div class="muted small">Pool: Jg. ${escapeHtml(String(entry.pool_jahrgang))} · Thema: ${escapeHtml(entry.pool_thema)}</div>
-        `;
-
-        const sel = document.createElement("select");
-        sel.innerHTML = `<option value="">— Bewertung —</option>` + ratings
-          .slice().sort((a,b)=>a.order-b.order)
-          .map(r => `<option value="${escapeHtml(r.label)}">${escapeHtml(r.label)}</option>`).join("");
-        sel.value = entry.bewertung_label || "";
-        sel.addEventListener("change", () => {
-          entry.bewertung_label = sel.value || null;
-          updateCounterAndSaveState();
-        });
-
-        const btn = document.createElement("button");
-        btn.className = "removeBtn";
-        btn.title = "Entfernen";
-        btn.textContent = "✕";
-        btn.addEventListener("click", () => {
-          korb = korb.filter(e => korbKey(e) !== korbKey(entry));
-          renderItemsList(); // Checkboxen aktualisieren
-          renderKorb();
-        });
-
-        div.appendChild(left);
-        div.appendChild(sel);
-        div.appendChild(btn);
-        elKorb.appendChild(div);
-      }
-
-      updateCounterAndSaveState();
-    }
-
-    function renderItemsList() {
-      if (!currentItems || currentItems.length === 0) {
-        elItems.innerHTML = `<div class="muted">Keine Items gefunden (prüfe Fach/Jahrgang/Thema in deiner Item-Tabelle).</div>`;
-        return;
-      }
-
-      const pool_jahrgang = elPoolJg.value;
-      const pool_thema = elThema.value;
-
-      elItems.innerHTML = "";
-
-      for (const it of currentItems) {
-        const line = document.createElement("div");
-        line.className = "itemline";
-
-        const cb = document.createElement("input");
-        cb.type = "checkbox";
-        cb.style.marginTop = "4px";
-
-        const itemText = it[C.item_text];
-
-        const existing = inKorb(pool_jahrgang, pool_thema, itemText);
-        cb.checked = !!existing;
-
-        const textDiv = document.createElement("div");
-        textDiv.innerHTML = `<div>${escapeHtml(itemText)}</div>`;
-
-        const ratingSelect = document.createElement("select");
-        ratingSelect.innerHTML = `<option value="">— Bewertung —</option>` + ratings
-          .slice().sort((a,b)=>a.order-b.order)
-          .map(r => `<option value="${escapeHtml(r.label)}">${escapeHtml(r.label)}</option>`).join("");
-
-        if (existing?.bewertung_label) ratingSelect.value = existing.bewertung_label;
-
-        // Wenn nicht ausgewählt: dropdown deaktivieren
-        ratingSelect.disabled = !cb.checked;
-
-        cb.addEventListener("change", () => {
-          const selected = cb.checked;
-
-          // Maximal-Check
-          if (selected) {
-            if (requiredCount != null && korb.length >= requiredCount) {
-              cb.checked = false;
-              logStatus(`Du kannst max. ${requiredCount} Items auswählen (track: ${currentTrack}). Entferne erst ein Item aus dem Korb.`);
-              return;
-            }
-
-            const entry = {
-              pool_jahrgang: Number(pool_jahrgang),
-              pool_thema: String(pool_thema),
-              item_text: String(itemText),
-              bewertung_label: ratingSelect.value || null,
-            };
-            korb.push(entry);
-            ratingSelect.disabled = false;
-          } else {
-            korb = korb.filter(e => !(e.pool_jahrgang === Number(pool_jahrgang) && e.pool_thema === String(pool_thema) && e.item_text === String(itemText)));
-            ratingSelect.disabled = true;
-            ratingSelect.value = "";
-          }
-          renderKorb();
-        });
-
-        ratingSelect.addEventListener("change", () => {
-          const entry = inKorb(pool_jahrgang, pool_thema, itemText);
-          if (entry) entry.bewertung_label = ratingSelect.value || null;
-          updateCounterAndSaveState();
-        });
-
-        line.appendChild(cb);
-        line.appendChild(textDiv);
-        line.appendChild(ratingSelect);
-        elItems.appendChild(line);
-      }
-    }
-
-    async function loadFaecher() {
-  try {
-    logStatus("Lade Fächer (Debug)…");
-
-    // Wichtig: erstmal OHNE 'order' Spalte abfragen
-    const res = await supabase
-      .from(T.fach)
-      .select(`id, ${C.fach_name}`);
-
-    if (res.error) {
-      logStatus("❌ Fach-Query Fehler:\n" + JSON.stringify(res.error, null, 2));
-      throw res.error;
-    }
-
-    logStatus(`✅ Fach-Query ok. Rows: ${res.data?.length ?? 0}`);
-
-    elFach.innerHTML = `<option value="">— bitte wählen —</option>`;
-    for (const row of (res.data ?? [])) {
-      const opt = document.createElement("option");
-      opt.value = row[C.fach_name];
-      opt.textContent = row[C.fach_name];
-      elFach.appendChild(opt);
-    }
-
-    logStatus(`✅ Dropdown gefüllt. Optionen: ${(res.data ?? []).length}`);
-  } catch (e) {
-    logStatus("❌ loadFaecher Exception:\n" + (e?.message ?? String(e)));
-    throw e;
-  }
-    }
-
-    logStatus(`✅ Fach-Query ok. Rows: ${res.data?.length ?? 0}`);
-
-    elFach.innerHTML = `<option value="">— bitte wählen —</option>`;
-    for (const row of (res.data ?? [])) {
-      const opt = document.createElement("option");
-      opt.value = row[C.fach_name];
-      opt.textContent = row[C.fach_name];
-      elFach.appendChild(opt);
-    }
-
-    logStatus(`✅ Dropdown gefüllt. Optionen: ${(res.data ?? []).length}`);
-  } catch (e) {
-    logStatus("❌ loadFaecher Exception:\n" + (e?.message ?? String(e)));
-    throw e;
+    line.appendChild(cb);
+    line.appendChild(textDiv);
+    line.appendChild(sel);
+    elItems.appendChild(line);
   }
 
-    async function loadRatings() {
-      logStatus("Lade Bewertungsskala …");
-      const { data, error } = await supabase
-        .from(T.bewertungsskala)
-        .select(`id, ${C.rating_label}, ${C.rating_order}`)
-        .order(C.rating_order, { ascending: true });
+  renderKorb();
+  updateCounter();
+  logStatus(`✅ Items geladen: ${rows.length}`);
+}
 
-      if (error) throw error;
+function renderKorb(){
+  elKorb.innerHTML = "";
+  if (!selected.size){
+    elKorb.innerHTML = `<div class="small muted">Noch keine Auswahl.</div>`;
+    return;
+  }
+  for (const [id, v] of selected.entries()){
+    const row = v.itemRow;
+    const txt = row[C.item_text];
+    const wrap = document.createElement("div");
+    wrap.className = "line";
+    wrap.style.gridTemplateColumns = "1fr 200px 110px";
 
-      ratings = data.map(r => ({ label: r[C.rating_label], order: r[C.rating_order] }));
-      logStatus("Bewertungsskala geladen.");
-    }
+    const t = document.createElement("div");
+    t.textContent = txt;
 
-    async function loadTrackForFach(fachName) {
-      // Wir nehmen an, dass track innerhalb eines Fachs konsistent ist.
-      const { data, error } = await supabase
-        .from(T.item)
-        .select(`${C.item_track}`)
-        .eq(C.item_fach, fachName)
-        .limit(1);
-
-      if (error) throw error;
-
-      const t = normalizeTrack(data?.[0]?.[C.item_track] ?? null);
-      currentTrack = t;
-      requiredCount = t ? TRACK_COUNTS[t] ?? null : null;
-
-      elTrackInfo.textContent = `track: ${currentTrack ?? "—"}`;
-      updateCounterAndSaveState();
-    }
-
-    async function loadThemen(fachName, poolJg) {
-      elThema.disabled = true;
-      elThema.innerHTML = `<option value="">— lade Themen —</option>`;
-
-      const { data, error } = await supabase
-        .from(T.thema)
-        .select(`id, ${C.thema_name}`)
-        .eq(C.thema_fach, fachName)
-        .eq(C.thema_jahrgang, Number(poolJg))
-        .order(C.thema_name, { ascending: true });
-
-      if (error) throw error;
-
-      elThema.innerHTML = `<option value="">— bitte wählen —</option>`;
-      for (const row of data) {
-        const opt = document.createElement("option");
-        opt.value = row[C.thema_name];
-        opt.textContent = row[C.thema_name];
-        elThema.appendChild(opt);
-      }
-      elThema.disabled = false;
-    }
-
-    async function loadItemsForSelection(fachName, poolJg, themaName) {
-      logStatus(`Lade Items: ${fachName} · Jg. ${poolJg} · ${themaName} …`);
-      const { data, error } = await supabase
-        .from(T.item)
-        .select(`id, ${C.item_text}, ${C.item_track}`)
-        .eq(C.item_fach, fachName)
-        .eq(C.item_jahrgang, Number(poolJg))
-        .eq(C.item_thema, themaName)
-        .order(C.item_text, { ascending: true });
-
-      if (error) throw error;
-
-      currentItems = data;
-
-      // Track setzen (falls noch nicht gesetzt)
-      if (!currentTrack) {
-        const t = normalizeTrack(data?.[0]?.[C.item_track] ?? null);
-        currentTrack = t;
-        requiredCount = t ? TRACK_COUNTS[t] ?? null : null;
-        elTrackInfo.textContent = `track: ${currentTrack ?? "—"}`;
-      }
-
-      renderItemsList();
-      updateCounterAndSaveState();
-      logStatus("Items geladen.");
-    }
-
-    async function saveNewVersion() {
-      const kind_code = elKind.value.trim();
-      const fachName = elFach.value;
-      if (!kind_code || !fachName) return;
-
-      // Neue Version-ID
-      const eingabe_id = (crypto?.randomUUID?.() ?? null);
-      if (!eingabe_id) {
-        throw new Error("Dein Browser unterstützt crypto.randomUUID() nicht.");
-      }
-
-      // Zeugniseinträge vorbereiten
-      const rows = korb.map(e => ({
-        [C.z_kind_code]: kind_code,
-        [C.z_fach]: fachName,
-
-        // Wir speichern jahrgang/thema pro ausgewähltem Item = der Pool (damit alles nachvollziehbar ist)
-        [C.z_jahrgang]: Number(e.pool_jahrgang),
-        [C.z_thema]: String(e.pool_thema),
-
-        [C.z_item]: String(e.item_text),
-        [C.z_bewertung]: String(e.bewertung_label),
-
-        [C.z_eingabe_id]: eingabe_id,
-
-        [C.z_pool_jahrgang]: Number(e.pool_jahrgang),
-        [C.z_pool_thema]: String(e.pool_thema),
-      }));
-
-      logStatus("Speichere Zeugniseinträge …");
-      const { error: insErr } = await supabase
-        .from(T.zeugniseintraege)
-        .insert(rows);
-
-      if (insErr) throw insErr;
-
-      logStatus("Aktualisiere fachstand (Überschreiben/Upsert) …");
-      const upsertObj = {
-        [C.fs_kind_code]: kind_code,
-        [C.fs_fach]: fachName,
-        [C.fs_aktuelle_eingabe_id]: eingabe_id,
-        [C.fs_aktualisiert_am]: new Date().toISOString(),
-      };
-
-      const { error: upErr } = await supabase
-        .from(T.fachstand)
-        .upsert(upsertObj, { onConflict: `${C.fs_kind_code},${C.fs_fach}` });
-
-      if (upErr) throw upErr;
-
-      logStatus(`✅ Gespeichert. Neue Version-ID: ${eingabe_id}\nDu kannst jetzt weiter Items hinzufügen oder Fach wechseln.`);
-    }
-
-    function escapeHtml(s) {
-      return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#039;");
-    }
-
-    // =========================
-    // Events
-    // =========================
-    elFach.addEventListener("change", async () => {
-      currentTrack = null;
-      requiredCount = null;
-      currentItems = [];
-      elItems.innerHTML = `<div class="muted">Bitte Pool-Jahrgang und Thema wählen, dann „Items laden“.</div>`;
-      elThema.innerHTML = `<option value="">— zuerst Fach + Pool-Jahrgang wählen —</option>`;
-      elThema.disabled = true;
-
-      if (!elFach.value) {
-        elTrackInfo.textContent = "track: —";
-        updateCounterAndSaveState();
-        return;
-      }
-
-      try {
-        await loadTrackForFach(elFach.value);
-        if (elPoolJg.value) await loadThemen(elFach.value, elPoolJg.value);
-      } catch (e) {
-        logStatus("Fehler beim Laden des Tracks/Themen: " + (e.message ?? e));
-      }
+    const sel = document.createElement("select");
+    sel.innerHTML = ratingSelectHtml(v.ratingId || "");
+    sel.addEventListener("change", () => {
+      const e = selected.get(id);
+      e.ratingId = sel.value || "";
+      selected.set(id, e);
+      updateCounter();
     });
 
-    elPoolJg.addEventListener("change", async () => {
-      elThema.disabled = true;
-      if (!elFach.value || !elPoolJg.value) {
-        elThema.innerHTML = `<option value="">— zuerst Fach + Pool-Jahrgang wählen —</option>`;
-        return;
-      }
-      try {
-        await loadThemen(elFach.value, elPoolJg.value);
-        logStatus("Themen geladen. Wähle ein Thema und klicke „Items laden“.");
-      } catch (e) {
-        logStatus("Fehler beim Laden der Themen: " + (e.message ?? e));
-      }
+    const btn = document.createElement("button");
+    btn.textContent = "Entfernen";
+    btn.style.background = "#444";
+    btn.style.borderColor = "#444";
+    btn.addEventListener("click", () => {
+      selected.delete(id);
+      renderKorb();
+      updateCounter();
+      // Checkbox-Liste nicht automatisch neu gebaut, das ist ok für V1
     });
 
-    elLoadItems.addEventListener("click", async () => {
-      const fachName = elFach.value;
-      const poolJg = elPoolJg.value;
-      const themaName = elThema.value;
+    wrap.appendChild(t);
+    wrap.appendChild(sel);
+    wrap.appendChild(btn);
+    elKorb.appendChild(wrap);
+  }
+}
 
-      if (!fachName) { logStatus("Bitte zuerst ein Fach wählen."); return; }
-      if (!poolJg) { logStatus("Bitte zuerst einen Pool-Jahrgang wählen."); return; }
-      if (!themaName) { logStatus("Bitte zuerst ein Thema wählen."); return; }
+async function saveNewVersion(){
+  const kind = sanitizeKindCode(elKind.value);
+  const fach = elFach.value;
+  if (!kind || !fach) {
+    logStatus("Bitte Kind-Code und Fach setzen.");
+    return;
+  }
+  if (!currentTrack || !requiredCount){
+    logStatus("Track/Soll-Anzahl nicht ermittelt. Bitte Items laden.");
+    return;
+  }
+  if (selected.size !== requiredCount){
+    logStatus(`Bitte genau ${requiredCount} Items wählen (aktuell ${selected.size}).`);
+    return;
+  }
+  const allRated = [...selected.values()].every(v => !!v.ratingId);
+  if (!allRated){
+    logStatus("Bitte für alle ausgewählten Items eine Bewertung setzen.");
+    return;
+  }
 
-      try {
-        await loadItemsForSelection(fachName, poolJg, themaName);
-      } catch (e) {
-        logStatus("Fehler beim Laden der Items: " + (e.message ?? e));
-      }
+  // neue Version-ID
+  const eingabe_id = crypto.randomUUID();
+
+  // Zeugniseinträge vorbereiten
+  const rows = [];
+  for (const v of selected.values()){
+    const it = v.itemRow;
+    rows.push({
+      [C.z_kind]: kind,
+      [C.z_fach]: fach,
+      [C.z_jg]: it[C.item_jahrgang],
+      [C.z_thema]: it[C.item_thema],
+      [C.z_item]: it[C.item_text],
+      [C.z_bew]: v.ratingId,
+      [C.z_eingabe]: eingabe_id,
+      [C.z_pool_jg]: v.pool_jg,
+      [C.z_pool_thema]: v.pool_thema,
     });
+  }
 
-    elSave.addEventListener("click", async () => {
-      try {
-        await saveNewVersion();
-      } catch (e) {
-        logStatus("❌ Speichern fehlgeschlagen: " + (e.message ?? e));
-      }
-    });
+  logStatus("Speichere…");
 
-    // =========================
-    // Init
-    // =========================
-    (async function init() {
-  try {
-    logStatus("INIT A: starte…");
+  // 1) in fachstand upsert: aktuelle_eingabe_id pro kind+fach
+  // -> setzt den "Zeiger" auf die neueste Version.
+  const up1 = await supabase
+    .from(T.fachstand)
+    .upsert({
+      [C.f_kind]: kind,
+      [C.f_fach]: fach,
+      [C.f_eingabe]: eingabe_id,
+      [C.f_updated]: new Date().toISOString()
+    }, { onConflict: `${C.f_kind},${C.f_fach}` });
 
+  if (up1.error) { logStatus("❌ fachstand Fehler: " + up1.error.message); return; }
+
+  // 2) zeugniseintraege einfügen
+  const ins = await supabase
+    .from(T.zeugniseintraege)
+    .insert(rows);
+
+  if (ins.error) { logStatus("❌ Einfügen Fehler: " + ins.error.message); return; }
+
+  logStatus("✅ Gespeichert. Neue Version-ID: " + eingabe_id + " (du kannst weiter Items hinzufügen oder Fach wechseln).");
+}
+
+function onSelectionChange(){
+  const fach = elFach.value;
+  const poolJg = elPoolJg.value;
+  elBtnLoad.disabled = !(fach && poolJg);
+  elThema.disabled = !(fach && poolJg);
+  if (fach && poolJg){
+    loadThemen().catch(e => logStatus("❌ Themen Fehler: " + (e.message ?? e)));
+  }
+}
+
+elFach.addEventListener("change", () => {
+  currentTrack = null;
+  requiredCount = null;
+  selected.clear();
+  renderKorb();
+  updateCounter();
+  onSelectionChange();
+});
+elPoolJg.addEventListener("change", onSelectionChange);
+elThema.addEventListener("change", () => {
+  elBtnLoad.disabled = !(elFach.value && elPoolJg.value && elThema.value);
+});
+elBtnLoad.addEventListener("click", () => {
+  loadItems().catch(e => logStatus("❌ Items Fehler: " + (e.message ?? e)));
+});
+elBtnSave.addEventListener("click", () => {
+  saveNewVersion().catch(e => logStatus("❌ Speichern Fehler: " + (e.message ?? e)));
+});
+
+// Init
+(async function init(){
+  try{
+    logStatus("Init…");
     await loadRatings();
-    logStatus("INIT B: Bewertungsskala geladen.");
-
     await loadFaecher();
-    logStatus("INIT C: loadFaecher fertig. Optionen im Dropdown: " + (document.getElementById("fach")?.options?.length ?? 0));
-
-    renderKorb();
-    updateCounterAndSaveState();
-
-    logStatus("INIT OK. Wähle Fach, Pool-Jahrgang, Thema → Items laden.");
-  } catch (e) {
-    logStatus("❌ INIT FEHLER: " + (e?.message ?? String(e)));
+    logStatus("Bereit. Wähle Fach, Pool-Jahrgang, Thema → Items laden.");
+  }catch(e){
+    logStatus("❌ INIT Fehler: " + (e.message ?? String(e)));
   }
 })();
-  </script>
+</script>
 </body>
 </html>
