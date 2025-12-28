@@ -402,6 +402,23 @@
     logStatus("❌ loadFaecher Exception:\n" + (e?.message ?? String(e)));
     throw e;
   }
+    }
+
+    logStatus(`✅ Fach-Query ok. Rows: ${res.data?.length ?? 0}`);
+
+    elFach.innerHTML = `<option value="">— bitte wählen —</option>`;
+    for (const row of (res.data ?? [])) {
+      const opt = document.createElement("option");
+      opt.value = row[C.fach_name];
+      opt.textContent = row[C.fach_name];
+      elFach.appendChild(opt);
+    }
+
+    logStatus(`✅ Dropdown gefüllt. Optionen: ${(res.data ?? []).length}`);
+  } catch (e) {
+    logStatus("❌ loadFaecher Exception:\n" + (e?.message ?? String(e)));
+    throw e;
+  }
 
     async function loadRatings() {
       logStatus("Lade Bewertungsskala …");
