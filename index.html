@@ -374,23 +374,34 @@
     }
 
     async function loadFaecher() {
-      logStatus("Lade Fächer …");
-      const { data, error } = await supabase
-        .from(T.fach)
-        .select(`id, ${C.fach_name}, ${C.fach_order}`)
-        // .order(C.fach_order, { ascending: true });
+  try {
+    logStatus("Lade Fächer (Debug)…");
 
-      if (error) throw error;
+    // Wichtig: erstmal OHNE 'order' Spalte abfragen
+    const res = await supabase
+      .from(T.fach)
+      .select(`id, ${C.fach_name}`);
 
-      elFach.innerHTML = `<option value="">— bitte wählen —</option>`;
-      for (const row of data) {
-        const opt = document.createElement("option");
-        opt.value = row[C.fach_name];
-        opt.textContent = row[C.fach_name];
-        elFach.appendChild(opt);
-      }
-      logStatus("Fächer geladen.");
+    if (res.error) {
+      logStatus("❌ Fach-Query Fehler:\n" + JSON.stringify(res.error, null, 2));
+      throw res.error;
     }
+
+    logStatus(`✅ Fach-Query ok. Rows: ${res.data?.length ?? 0}`);
+
+    elFach.innerHTML = `<option value="">— bitte wählen —</option>`;
+    for (const row of (res.data ?? [])) {
+      const opt = document.createElement("option");
+      opt.value = row[C.fach_name];
+      opt.textContent = row[C.fach_name];
+      elFach.appendChild(opt);
+    }
+
+    logStatus(`✅ Dropdown gefüllt. Optionen: ${(res.data ?? []).length}`);
+  } catch (e) {
+    logStatus("❌ loadFaecher Exception:\n" + (e?.message ?? String(e)));
+    throw e;
+  }
 
     async function loadRatings() {
       logStatus("Lade Bewertungsskala …");
