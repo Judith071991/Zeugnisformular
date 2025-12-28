@@ -630,16 +630,23 @@
     // Init
     // =========================
     (async function init() {
-      try {
-        await loadRatings();
-        await loadFaecher();
-        renderKorb();
-        updateCounterAndSaveState();
-        logStatus("Bereit. Wähle Fach, Pool-Jahrgang, Thema → Items laden.");
-      } catch (e) {
-        logStatus("❌ Initialisierung fehlgeschlagen: " + (e.message ?? e));
-      }
-    })();
+  try {
+    logStatus("INIT A: starte…");
+
+    await loadRatings();
+    logStatus("INIT B: Bewertungsskala geladen.");
+
+    await loadFaecher();
+    logStatus("INIT C: loadFaecher fertig. Optionen im Dropdown: " + (document.getElementById("fach")?.options?.length ?? 0));
+
+    renderKorb();
+    updateCounterAndSaveState();
+
+    logStatus("INIT OK. Wähle Fach, Pool-Jahrgang, Thema → Items laden.");
+  } catch (e) {
+    logStatus("❌ INIT FEHLER: " + (e?.message ?? String(e)));
+  }
+})();
   </script>
 </body>
 </html>
