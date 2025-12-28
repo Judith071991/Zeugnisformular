@@ -378,7 +378,7 @@
       const { data, error } = await supabase
         .from(T.fach)
         .select(`id, ${C.fach_name}, ${C.fach_order}`)
-        .order(C.fach_order, { ascending: true });
+        // .order(C.fach_order, { ascending: true });
 
       if (error) throw error;
 
