@@ -1,13 +1,17 @@
-alert("app.js läuft ✅");
-// =========================
-// 1) HIER EINTRAGEN
-// =========================
-const SUPABASE_URL = "https://nvnjbmviyifslpsgljid.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52bmpibXZpeWlmc2xwc2dsamlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MDk5NDIsImV4cCI6MjA4MjQ4NTk0Mn0.g21Hp-wSTGmW-Uhtg4qJO767_DIl_rOztwPztVvrtBM";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// =========================
-// 2) Tabellen-/Spaltennamen (dein Setup)
-// =========================
+/* =========================
+   1) HIER EINTRAGEN
+========================= */
+const SUPABASE_URL = "https://nvnjbmviyifslpsgljid.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52bmpibXZpeWlmc2xwc2dsamlkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY5MDk5NDIsImV4cCI6MjA4MjQ4NTk0Mn0.g21Hp-wSTGmW-Uhtg4qJO767_DIl_rOztwPztVvrtBM"; // exakt wie in debug.html
+/* ========================= */
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* =========================
+   2) Tabellen / Spalten
+========================= */
 const T = {
   fach: "fach",
   thema: "thema",
@@ -23,16 +27,16 @@ const C = {
   fach_order: "order",
 
   // thema
-  thema_jahrgang: "jahrgang",
   thema_name: "thema",
   thema_fach: "fach",
+  thema_jahrgang: "jahrgang",
 
   // item
+  item_text: "item",
+  item_fach: "fach",
   item_jahrgang: "jahrgang",
   item_thema: "thema",
-  item_text: "item",
   item_track: "track",
-  item_fach: "fach",
 
   // bewertungsskala
   rating_label: "label",
@@ -56,9 +60,9 @@ const C = {
   fs_aktualisiert_am: "aktualisiert_am",
 };
 
-// =========================
-// 3) Track → Zielanzahl
-// =========================
+/* =========================
+   3) Track → Zielanzahl
+========================= */
 const TRACK_COUNTS = {
   hauptfach: 7,
   nebenfach: 5,
@@ -66,49 +70,55 @@ const TRACK_COUNTS = {
   sozialverhalten: 8,
 };
 
-// =========================
-// Supabase Client laden (ESM)
-// =========================
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// =========================
-// UI (IDs müssen in index.html existieren)
-// =========================
-const elKind = document.getElementById("kind_code");   // input
-const elFach = document.getElementById("fach");        // select
-const elPoolJg = document.getElementById("pool_jahrgang"); // select/input
-const elThema = document.getElementById("thema");      // select
-const elLoadItems = document.getElementById("loadItemsBtn"); // button
-const elItems = document.getElementById("items");      // div
-const elKorb = document.getElementById("korb");        // div
-const elSave = document.getElementById("saveBtn");     // button
-const elStatus = document.getElementById("status");    // div
-const elInfo = document.getElementById("info");        // optional (wenn vorhanden)
-
-function setStatus(msg) {
-  if (elStatus) elStatus.textContent = msg;
-  console.log(msg);
-}
-
 function normalizeTrack(x) {
   if (!x) return null;
   const t = String(x).trim().toLowerCase();
   if (t.includes("haupt")) return "hauptfach";
   if (t.includes("neben")) return "nebenfach";
-  if (t.includes("arbeits")) return "arbeitsverhalten";
+  if (t.includes("arbeit")) return "arbeitsverhalten";
   if (t.includes("sozial")) return "sozialverhalten";
   return t;
 }
 
-// =========================
-// State
-// =========================
+/* =========================
+   4) UI – IDs müssen passen
+========================= */
+const elKind = document.getElementById("kind_code");
+const elFach = document.getElementById("fach");
+const elPoolJg = document.getElementById("pool_jahrgang");
+const elThema = document.getElementById("thema");
+const elLoad = document.getElementById("btn_load");
+const elItems = document.getElementById("items");
+const elKorb = document.getElementById("korb");
+const elSave = document.getElementById("btn_save");
+const elStatus = document.getElementById("status");
+const elInfo = document.getElementById("info"); // optional
+
+function status(msg) {
+  if (elStatus) elStatus.textContent = msg;
+  console.log(msg);
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+/* =========================
+   5) State
+========================= */
 let ratings = [];         // [{label, order}]
-let currentItems = [];    // items in current view
-let currentTrack = null;  // hauptfach/nebenfach...
-let requiredCount = null; // number
-let korb = [];            // [{pool_jahrgang, pool_thema, item_text, bewertung_label}]
+let currentItems = [];    // Items der aktuellen Ansicht
+let currentTrack = null;  // hauptfach/nebenfach/...
+let requiredCount = null; // Zielanzahl
+
+// Korb sammelt über mehrere Pool-Jahrgänge/Themen
+// Key = pool_jahrgang||pool_thema||item_text
+let korb = [];
 
 function korbKey(e) {
   return `${e.pool_jahrgang}||${e.pool_thema}||${e.item_text}`;
@@ -119,14 +129,14 @@ function findInKorb(pool_jahrgang, pool_thema, item_text) {
   return korb.find(e => korbKey(e) === key) || null;
 }
 
-// =========================
-// Render Korb
-// =========================
+/* =========================
+   6) Render: Korb
+========================= */
 function renderKorb() {
   if (!elKorb) return;
 
   if (korb.length === 0) {
-    elKorb.innerHTML = "<div>Noch keine Auswahl.</div>";
+    elKorb.innerHTML = `<div class="small">Noch keine Auswahl.</div>`;
     updateSaveState();
     return;
   }
@@ -135,15 +145,17 @@ function renderKorb() {
   for (const entry of korb) {
     const row = document.createElement("div");
     row.style.display = "grid";
-    row.style.gridTemplateColumns = "1fr auto auto";
+    row.style.gridTemplateColumns = "1fr 220px auto";
     row.style.gap = "10px";
     row.style.alignItems = "center";
     row.style.padding = "8px 0";
-    row.style.borderBottom = "1px solid #ddd";
+    row.style.borderBottom = "1px solid #eee";
 
     const left = document.createElement("div");
-    left.innerHTML = `<div><b>${escapeHtml(entry.item_text)}</b></div>
-      <div style="font-size:12px;opacity:.75;">Pool: Jg ${entry.pool_jahrgang} · Thema: ${escapeHtml(entry.pool_thema)}</div>`;
+    left.innerHTML = `
+      <div><b>${escapeHtml(entry.item_text)}</b></div>
+      <div class="small" style="opacity:.75">Pool: Jg ${entry.pool_jahrgang} · Thema: ${escapeHtml(entry.pool_thema)}</div>
+    `;
 
     const sel = document.createElement("select");
     sel.innerHTML =
@@ -151,7 +163,7 @@ function renderKorb() {
       ratings
         .slice()
         .sort((a, b) => a.order - b.order)
-        .map(r => `<option value="${escapeAttr(r.label)}">${escapeHtml(r.label)}</option>`)
+        .map(r => `<option value="${escapeHtml(r.label)}">${escapeHtml(r.label)}</option>`)
         .join("");
 
     sel.value = entry.bewertung_label || "";
@@ -164,8 +176,8 @@ function renderKorb() {
     btn.textContent = "✕";
     btn.title = "Entfernen";
     btn.addEventListener("click", () => {
-      korb = korb.filter(x => korbKey(x) !== korbKey(entry));
-      renderItems(); // Checkboxen neu setzen
+      korb = korb.filter(e => korbKey(e) !== korbKey(entry));
+      renderItems(); // Checkboxen aktualisieren
       renderKorb();
     });
 
@@ -178,39 +190,14 @@ function renderKorb() {
   updateSaveState();
 }
 
-function updateSaveState() {
-  const kind = elKind?.value?.trim() || "";
-  const fach = elFach?.value || "";
-
-  const allRated = korb.every(e => !!e.bewertung_label);
-  const countOK = requiredCount != null && korb.length === requiredCount;
-
-  let ok = true;
-  let msg = "";
-
-  if (!kind) { ok = false; msg = "Bitte Kind-Code eingeben."; }
-  else if (!fach) { ok = false; msg = "Bitte Fach wählen."; }
-  else if (requiredCount == null) { ok = false; msg = "Track/Ziel nicht ermittelt. Prüfe item.track in Supabase."; }
-  else if (!countOK) { ok = false; msg = `Bitte genau ${requiredCount} Items auswählen (aktuell ${korb.length}).`; }
-  else if (!allRated) { ok = false; msg = "Bitte für alle ausgewählten Items eine Bewertung wählen."; }
-  else { msg = "Bereit zum Speichern."; }
-
-  if (elSave) elSave.disabled = !ok;
-  setStatus(msg);
-
-  if (elInfo) {
-    elInfo.textContent = `track: ${currentTrack ?? "—"} | ziel: ${requiredCount ?? "—"} | gewählt: ${korb.length}`;
-  }
-}
-
-// =========================
-// Render Items (links)
-// =========================
+/* =========================
+   7) Render: Items (links)
+========================= */
 function renderItems() {
   if (!elItems) return;
 
   if (!currentItems || currentItems.length === 0) {
-    elItems.innerHTML = "<div>Noch keine Items geladen.</div>";
+    elItems.innerHTML = `<div class="small">Noch keine Items geladen.</div>`;
     return;
   }
 
@@ -224,8 +211,9 @@ function renderItems() {
     const existing = findInKorb(pool_jahrgang, pool_thema, itemText);
 
     const line = document.createElement("div");
+    line.className = "line"; // falls du CSS hast
     line.style.display = "grid";
-    line.style.gridTemplateColumns = "auto 1fr";
+    line.style.gridTemplateColumns = "24px 1fr";
     line.style.gap = "10px";
     line.style.alignItems = "start";
     line.style.padding = "8px 0";
@@ -235,15 +223,11 @@ function renderItems() {
     cb.type = "checkbox";
     cb.checked = !!existing;
 
-    const txt = document.createElement("div");
-    txt.innerHTML = escapeHtml(itemText);
-
     cb.addEventListener("change", () => {
       if (cb.checked) {
-        // Max check
         if (requiredCount != null && korb.length >= requiredCount) {
           cb.checked = false;
-          setStatus(`Maximal ${requiredCount} Items (track: ${currentTrack}). Entferne erst eins im Korb.`);
+          status(`Maximal ${requiredCount} Items (track: ${currentTrack}). Entferne erst eins im Korb.`);
           return;
         }
         korb.push({
@@ -253,10 +237,17 @@ function renderItems() {
           bewertung_label: null,
         });
       } else {
-        korb = korb.filter(e => !(e.pool_jahrgang === pool_jahrgang && e.pool_thema === pool_thema && e.item_text === String(itemText)));
+        korb = korb.filter(e => !(
+          e.pool_jahrgang === pool_jahrgang &&
+          e.pool_thema === pool_thema &&
+          e.item_text === String(itemText)
+        ));
       }
       renderKorb();
     });
+
+    const txt = document.createElement("div");
+    txt.innerHTML = escapeHtml(itemText);
 
     line.appendChild(cb);
     line.appendChild(txt);
@@ -264,13 +255,44 @@ function renderItems() {
   }
 }
 
-// =========================
-// Daten laden
-// =========================
+/* =========================
+   8) Save-Logik / Validierung
+========================= */
+function updateInfo() {
+  if (!elInfo) return;
+  elInfo.textContent = `track: ${currentTrack ?? "—"} | ziel: ${requiredCount ?? "—"} | gewählt: ${korb.length}`;
+}
+
+function updateSaveState() {
+  updateInfo();
+
+  if (!elSave) return;
+
+  const kind = elKind?.value?.trim() || "";
+  const fach = elFach?.value || "";
+  const allRated = korb.every(e => !!e.bewertung_label);
+
+  let ok = true;
+  let msg = "";
+
+  if (!kind) { ok = false; msg = "Bitte Kind-Code eingeben."; }
+  else if (!fach) { ok = false; msg = "Bitte Fach wählen."; }
+  else if (requiredCount == null) { ok = false; msg = "Zielanzahl unbekannt (prüfe item.track)."; }
+  else if (korb.length !== requiredCount) { ok = false; msg = `Bitte genau ${requiredCount} Items wählen (aktuell ${korb.length}).`; }
+  else if (!allRated) { ok = false; msg = "Bitte für alle ausgewählten Items eine Bewertung wählen."; }
+  else { msg = "Bereit zum Speichern."; }
+
+  elSave.disabled = !ok;
+  status(msg);
+}
+
+/* =========================
+   9) Daten laden
+========================= */
 async function loadRatings() {
   const { data, error } = await supabase
     .from(T.bewertungsskala)
-    .select(`id, ${C.rating_label}, ${C.rating_order}`)
+    .select(`${C.rating_label}, ${C.rating_order}`)
     .order(C.rating_order, { ascending: true });
 
   if (error) throw error;
@@ -278,9 +300,10 @@ async function loadRatings() {
 }
 
 async function loadFaecher() {
+  status("Lade Fächer…");
   const { data, error } = await supabase
     .from(T.fach)
-    .select(`id, ${C.fach_name}`)
+    .select(`${C.fach_name}, ${C.fach_order}`)
     .order(C.fach_order, { ascending: true });
 
   if (error) throw error;
@@ -292,6 +315,7 @@ async function loadFaecher() {
     opt.textContent = row[C.fach_name];
     elFach.appendChild(opt);
   }
+  status(`Fächer geladen: ${data?.length ?? 0}`);
 }
 
 async function loadTrackForFach(fachName) {
@@ -314,7 +338,7 @@ async function loadThemen(fachName, poolJg) {
 
   const { data, error } = await supabase
     .from(T.thema)
-    .select(`id, ${C.thema_name}`)
+    .select(`${C.thema_name}`)
     .eq(C.thema_fach, fachName)
     .eq(C.thema_jahrgang, Number(poolJg))
     .order(C.thema_name, { ascending: true });
@@ -332,9 +356,10 @@ async function loadThemen(fachName, poolJg) {
 }
 
 async function loadItems(fachName, poolJg, themaName) {
+  status(`Lade Items…`);
   const { data, error } = await supabase
     .from(T.item)
-    .select(`id, ${C.item_text}, ${C.item_track}`)
+    .select(`${C.item_text}, ${C.item_track}`)
     .eq(C.item_fach, fachName)
     .eq(C.item_jahrgang, Number(poolJg))
     .eq(C.item_thema, themaName)
@@ -344,7 +369,7 @@ async function loadItems(fachName, poolJg, themaName) {
 
   currentItems = data ?? [];
 
-  // Track ggf. aus den Items ziehen (falls vorher leer)
+  // Track aus Items nehmen, falls noch nicht bestimmt
   if (!currentTrack && currentItems.length > 0) {
     currentTrack = normalizeTrack(currentItems[0][C.item_track]);
     requiredCount = currentTrack ? (TRACK_COUNTS[currentTrack] ?? null) : null;
@@ -352,11 +377,12 @@ async function loadItems(fachName, poolJg, themaName) {
 
   renderItems();
   updateSaveState();
+  status(`Items geladen: ${currentItems.length}`);
 }
 
-// =========================
-// Speichern (Version B)
-// =========================
+/* =========================
+   10) Speichern: zeugniseintraege + fachstand
+========================= */
 async function saveNewVersion() {
   const kind_code = elKind.value.trim();
   const fachName = elFach.value;
@@ -368,7 +394,6 @@ async function saveNewVersion() {
 
   const eingabe_id = crypto.randomUUID();
 
-  // Insert: zeugniseintraege
   const rows = korb.map(e => ({
     [C.z_kind_code]: kind_code,
     [C.z_fach]: fachName,
@@ -381,12 +406,10 @@ async function saveNewVersion() {
     [C.z_pool_thema]: String(e.pool_thema),
   }));
 
-  setStatus("Speichere Zeugniseinträge…");
+  status("Speichere…");
   const { error: insErr } = await supabase.from(T.zeugniseintraege).insert(rows);
   if (insErr) throw insErr;
 
-  // Upsert: fachstand (überschreiben)
-  setStatus("Aktualisiere fachstand…");
   const upsertObj = {
     [C.fs_kind_code]: kind_code,
     [C.fs_fach]: fachName,
@@ -400,70 +423,53 @@ async function saveNewVersion() {
 
   if (upErr) throw upErr;
 
-  setStatus(`✅ Gespeichert! Version-ID: ${eingabe_id}`);
-
-  // Optional: Korb leeren nach Save
-  // korb = [];
-  // renderKorb();
-  // renderItems();
+  status(`✅ Gespeichert (Version ${eingabe_id}).`);
 }
 
-function escapeHtml(s) {
-  return String(s)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function escapeAttr(s) {
-  return escapeHtml(s);
-}
-
-// =========================
-// Events
-// =========================
+/* =========================
+   11) Events
+========================= */
 elFach.addEventListener("change", async () => {
   currentItems = [];
   renderItems();
+
   try {
     if (elFach.value) {
       await loadTrackForFach(elFach.value);
       if (elPoolJg.value) await loadThemen(elFach.value, elPoolJg.value);
     }
   } catch (e) {
-    setStatus("Fehler: " + (e?.message ?? String(e)));
+    status("❌ Fehler: " + (e?.message ?? String(e)));
   }
 });
 
 elPoolJg.addEventListener("change", async () => {
   currentItems = [];
   renderItems();
+
   try {
     if (elFach.value && elPoolJg.value) {
       await loadThemen(elFach.value, elPoolJg.value);
-      setStatus("Themen geladen.");
+      status("Themen geladen.");
     }
   } catch (e) {
-    setStatus("Fehler: " + (e?.message ?? String(e)));
+    status("❌ Fehler: " + (e?.message ?? String(e)));
   }
 });
 
-elLoadItems.addEventListener("click", async () => {
+elLoad.addEventListener("click", async () => {
   try {
     const fachName = elFach.value;
     const poolJg = elPoolJg.value;
     const themaName = elThema.value;
 
-    if (!fachName) return setStatus("Bitte Fach wählen.");
-    if (!poolJg) return setStatus("Bitte Pool-Jahrgang wählen.");
-    if (!themaName) return setStatus("Bitte Thema wählen.");
+    if (!fachName) return status("Bitte Fach wählen.");
+    if (!poolJg) return status("Bitte Pool-Jahrgang wählen.");
+    if (!themaName) return status("Bitte Thema wählen.");
 
     await loadItems(fachName, poolJg, themaName);
-    setStatus(`Items geladen: ${currentItems.length}`);
   } catch (e) {
-    setStatus("Fehler: " + (e?.message ?? String(e)));
+    status("❌ Fehler: " + (e?.message ?? String(e)));
   }
 });
 
@@ -471,22 +477,23 @@ elSave.addEventListener("click", async () => {
   try {
     await saveNewVersion();
   } catch (e) {
-    setStatus("❌ Speichern fehlgeschlagen: " + (e?.message ?? String(e)));
+    status("❌ Speichern fehlgeschlagen: " + (e?.message ?? String(e)));
   }
 });
 
-// =========================
-// Init
-// =========================
+/* =========================
+   12) Init
+========================= */
 (async function init() {
   try {
-    setStatus("Starte…");
+    status("Starte…");
     await loadRatings();
     await loadFaecher();
     renderItems();
     renderKorb();
-    setStatus("✅ Bereit. Fach wählen → Pool-Jahrgang → Thema → Items laden → auswählen → speichern.");
+    updateSaveState();
+    status("✅ Bereit. Fach → Pool-Jg → Thema → Items laden → auswählen → speichern.");
   } catch (e) {
-    setStatus("❌ INIT FEHLER: " + (e?.message ?? String(e)));
+    status("❌ INIT FEHLER: " + (e?.message ?? String(e)));
   }
 })();
