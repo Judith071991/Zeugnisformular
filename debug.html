@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Debug Supabase</title>
+</head>
+<body style="font-family: system-ui; padding: 16px">
+  <h1>Debug Supabase</h1>
+
+  <p><b>Status:</b> <span id="status">Start…</span></p>
+  <pre id="out" style="white-space: pre-wrap; background:#f6f6f6; padding:12px; border-radius:8px;"></pre>
+
+  <script type="module">
+    import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+    const SUPABASE_URL = "https://nvnjbmviyifslpsgljid.supabase.co";
+    const SUPABASE_ANON_KEY = "HIER_DEIN_PUBLISHABLE_KEY_EINFUEGEN";
+
+    const statusEl = document.getElementById("status");
+    const outEl = document.getElementById("out");
+    const log = (s) => outEl.textContent += s + "\n";
+
+    statusEl.textContent = "Supabase Client…";
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    statusEl.textContent = "Teste Select auf Tabelle fach…";
+    try {
+      const res = await supabase.from("fach").select("name, order").order("order", { ascending: true });
+      log("RAW RESULT:\n" + JSON.stringify(res, null, 2));
+
+      if (res.error) {
+        statusEl.textContent = "❌ FEHLER: " + res.error.message;
+      } else {
+        statusEl.textContent = "✅ OK: Rows = " + (res.data?.length ?? 0);
+      }
+    } catch (e) {
+      statusEl.textContent = "❌ EXCEPTION";
+      log("EXCEPTION:\n" + (e?.stack ?? String(e)));
+    }
+  </script>
+</body>
+</html>
