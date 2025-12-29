@@ -58,26 +58,5 @@
 
   <script type="module" src="./admin.js?v=1"></script>
   <script>
-  alert("ADMIN: Inline-JS läuft ✅");
-
-  document.addEventListener("DOMContentLoaded", () => {
-    document.body.style.background = "#ffeeba";
-
-    const s = document.getElementById("status");
-    if (s) s.textContent = "ADMIN: JS läuft ✅ (inline)";
-
-    const badge = document.createElement("div");
-    badge.textContent = "ADMIN JS OK ✅";
-    badge.style.position = "fixed";
-    badge.style.top = "10px";
-    badge.style.right = "10px";
-    badge.style.padding = "8px 10px";
-    badge.style.background = "black";
-    badge.style.color = "white";
-    badge.style.borderRadius = "10px";
-    badge.style.zIndex = "99999";
-    document.body.appendChild(badge);
-  });
-</script>
 </body>
 </html>
