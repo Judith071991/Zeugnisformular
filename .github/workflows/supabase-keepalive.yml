@@ -10,14 +10,15 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase
+      - name: Call Supabase keepalive() RPC
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
-          curl -sS -f \
+          curl -sS -X POST "${SUPABASE_URL}/rest/v1/rpc/keepalive" \
             -H "apikey: ${SERVICE_ROLE_KEY}" \
             -H "Authorization: Bearer ${SERVICE_ROLE_KEY}" \
-            "${SUPABASE_URL}/rest/v1/keepalive?select=id&limit=1" \
-            > /dev/null
-          echo "Supabase ping OK"
+            -H "Content-Type: application/json" \
+            -d '{}' \
+            --fail > /dev/null
+          echo "Supabase RPC keepalive OK"
